@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: testpod02
+    annotations:
+        description: Demo of multi-container pod
+spec:
+    containers:
+        - name: c01
+          image: ubuntu
+          command: ["/bin/bash", "-c", "while true; do echo 'I am container c01'; sleep 5; done"]
+        - name: c02
+          image: ubuntu
+          command: ["/bin/bash", "-c", "while true; do echo 'I am container c02'; sleep 5; done"]
+    restartPolicy: Never

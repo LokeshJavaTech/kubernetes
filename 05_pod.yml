@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: testpod05
+    # annotations can have any key and value strings
+    annotations:
+        description: Demo for Labels and Selectors for Kubernetes objects, like POD
+    # labels can have any key and value strings
+    labels:
+        env: Development
+        version: 1.2.1
+        dated: Jan-2026
+spec:
+    containers:
+        - name: c01
+          image: ubuntu
+          command: ["/bin/bash", "-c", "while true; do echo 'I am container c01'; sleep 5; done"]
+          env:
+              - name: FIRST_NAME
+                value: Lokesh
+              - name: LAST_NAME
+                value: Mittal
+    restartPolicy: Never

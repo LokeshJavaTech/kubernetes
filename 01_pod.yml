@@ -1,10 +1,12 @@
-kind: Pod
 apiVersion: v1
+kind: Pod
 metadata:
-    name: testpod
+    name: testpod01
+    annotations:
+        description: The annotations are for comment purpose only, and can contain any key-value pair.
 spec:
     containers:
-        - name: coo
+        - name: c01
           image: ubuntu
           command: ["/bin/bash", "-c", "while true; do echo Hello-Lokesh; sleep 5; done"]
     restartPolicy: Never
