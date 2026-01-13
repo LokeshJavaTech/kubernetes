@@ -1,17 +1,17 @@
 apiVersion: v1
 kind: Pod
 metadata:
-    name: testpod05
+    name: testpod06
 
     # annotations can have any key and value strings
     annotations:
-        description: Demo for Labels and Selectors for Kubernetes objects, like POD
+        description: Demo for Node Selector. We should add label "purpose=devOnly" to the node either before executing apply command or after, to create the POD on that node.
 
     # labels can have any key and value strings
     labels:
-        env: Development
+        environment: Development
         version: 1.2.1
-        dated: Jan-2026
+
 spec:
     containers:
         - name: c01
@@ -22,4 +22,9 @@ spec:
                 value: Lokesh
               - name: LAST_NAME
                 value: Mittal
+
+    # nodeSelectors can have any key and value strings
+    nodeSelector:
+        purpose: devOnly
+
     restartPolicy: Never
