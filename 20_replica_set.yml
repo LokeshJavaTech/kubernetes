@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+    name: test-rs-01
+
+spec:
+    replicas: 2
+
+    # selector have fixed key
+    selector:
+        matchExpressions:
+            - {
+                key: selectorLabelValue,
+                operator: In,
+                values: [rs-eligible-pod, new-rs-eligible-pod]
+              }
+
+    template:
+        metadata:
+            name: testRcEligiblePod01
+            labels:
+                selectorLabelValue: rs-eligible-pod
+        spec:
+            containers:
+                - name: c01
+                  image: ubuntu
+                  command: ["/bin/bash", "-c", "while true; do echo 'I am container c01'; sleep 5; done"]
+                  env:
+                      - name: FIRST_NAME
+                        value: Lokesh
+                      - name: LAST_NAME
+                        value: Mittal
