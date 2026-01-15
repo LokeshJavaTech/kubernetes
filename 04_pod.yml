@@ -1,10 +1,14 @@
 apiVersion: v1
+
 kind: Pod
+
 metadata:
-    name: testpod04
+    name: test-pod
+
     # annotations can have any key and value strings
     annotations:
         description: Demo for Exposing ports inside a container
+
 spec:
     containers:
         - name: c01

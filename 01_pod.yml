@@ -1,9 +1,14 @@
 apiVersion: v1
+
 kind: Pod
+
 metadata:
-    name: testpod01
+    name: test-pod
+
+    # annotations can have any key and value strings
     annotations:
         description: The annotations are for comment purpose only, and can contain any key-value pair.
+
 spec:
     containers:
         - name: c01

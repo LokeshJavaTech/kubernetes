@@ -1,7 +1,9 @@
 apiVersion: v1
+
 kind: Pod
+
 metadata:
-    name: testpod05
+    name: test-pod
 
     # annotations can have any key and value strings
     annotations:
@@ -12,6 +14,7 @@ metadata:
         env: Development
         version: 1.2.1
         dated: Jan-2026
+
 spec:
     containers:
         - name: c01

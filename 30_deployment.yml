@@ -1,22 +1,23 @@
-apiVersion: v1
+apiVersion: apps/v1
 
-kind: ReplicationController
+kind: Deployment
 
 metadata:
-    name: test-rc
+    name: test-deployment
 
 spec:
     replicas: 2
-    
-    # selector can have any key and value string
+
+    # selector's matchLabel can have any key and any value
     selector:
-        selectorLabelValue: rc-eligible-pod
-    
+        matchLabels:
+            selectorLabelValue: deployment-rs-pod
+
     template:
         metadata:
-            name: testRcEligiblePod01
+            name: testDeploymentRsPod01
             labels:
-                selectorLabelValue: rc-eligible-pod
+                selectorLabelValue: deployment-rs-pod
         spec:
             containers:
                 - name: c01
