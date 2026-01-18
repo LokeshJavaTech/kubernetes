@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+    name: test-deployment
+
+spec:
+    replicas: 1
+
+    # selector's matchLabel can have any key and any value
+    selector:
+        matchLabels:
+            selectorLabelValue: deployment-rs-pod
+
+    template:
+        metadata:
+            name: testDeploymentRsPod01
+            labels:
+                selectorLabelValue: deployment-rs-pod
+        spec:
+            containers:
+                - name: c01
+                  image: httpd
+                  ports:
+                      - containerPort: 80
+
+---
+
+apiVersion: v1
+
+kind: Service
+
+metadata:
+    name: test-service
+
+spec:
+    type: ClusterIP
+
+    # selector's matchLabel can have any key and any value
+    selector:
+        selectorLabelValue: deployment-rs-pod               # apply this service to any pods which has this label
+
+    ports:
+        - port: 80                                          # container Port
+          targetPort: 80                                    # Pod port
+
+
+# kubectl apply -f 42_networking_two_pods_in_separate_nodes_using_clusterIP_service_type.yml
+# O/P: 
+#   deployment.apps/test-deployment created
+#   service/test-service created
+#
+# kubectl get svc -o wide
+#
+#   NAME           TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)   AGE     SELECTOR
+#   test-service   ClusterIP   10.102.1.104   <none>        80/TCP    2m10s   selectorLabelValue=deployment-rs-pod
+#
+# kubectl get deploy -o wide
+#
+#   NAME              READY   UP-TO-DATE   AVAILABLE   AGE    CONTAINERS   IMAGES   SELECTOR
+#   test-deployment   1/1     1            1           3m3s   c01          httpd    selectorLabelValue=deployment-rs-pod
+#
+# kubectl get rs -o wide
+#
+#   NAME                         DESIRED   CURRENT   READY   AGE     CONTAINERS   IMAGES   SELECTOR
+#   test-deployment-788cb6564c   1         1         1       3m54s   c01          httpd    pod-template-hash=788cb6564c,selectorLabelValue=deployment-rs-pod
+# 
+# kubectl get pods -o wide
+#
+#   NAME                               READY   STATUS    RESTARTS   AGE     IP             NODE           NOMINATED NODE   READINESS GATES
+#   test-deployment-788cb6564c-hxv2v   1/1     Running   0          4m48s   192.168.0.12   controlplane   <none>           <none>
+#
+# 
+# Now copy private IP of pod and access via curl using port 80 --> output should be "It works!"
+# curl 192.168.0.12:80
+#
+#
+# In the services (kubectl get service -o wide), we can check the CLUSTER-IP, which is the Virtual IP given to the service object of cluster type.
+# Therefore, our cluster has got this IP. We will be able to access our Pod's container using this Virtual IP, which will not change even POD recreates.
+# 
+# curl 10.102.1.104:80                           --> Output should be "It works!"
+#
+# Now even if we delete the POD, kubernetes will recreate the POD. Although the newly created POD will have different private IP address.
+# However, we can still access container of this POD using same ClusterIP address.
+# 
+# kubectl delete pod test-deployment-788cb6564c-hxv2v
+# kubectl get pods -o wide                       --> New POD created with different IP Address
+# kubectl get svc -o wide                        --> Cluster IP (Virtual IP) remains same
+# curl 10.102.1.104:80                           --> Still We will be able to access our Pod's container using curl <clusterIp>:80
