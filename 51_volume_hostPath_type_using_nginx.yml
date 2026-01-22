@@ -1,0 +1,75 @@
+apiVersion: v1
+
+kind: Pod
+
+metadata:
+    name: test-pod
+
+    # annotations can have any key and value strings
+    annotations:
+        description: Demo for mounting hostPath volume (from host) with a POD and update the file at host to get updated within the POD
+
+spec:
+    containers:
+        - name: c01
+          image: nginx
+          ports:
+              - containerPort: 80
+          volumeMounts:
+              - name: my-volume
+                mountPath: "/usr/share/nginx/html"
+
+    volumes:
+        - name: my-volume
+          hostPath:
+              path: /tmp/host_data
+
+
+
+# kubectl apply -f 51_volume_hostPath_type_using_nginx.yml
+# 
+# kubectl get pods -o wide
+#
+#   NAME       READY   STATUS    RESTARTS   AGE   IP            NODE           NOMINATED NODE   READINESS GATES
+#   test-pod   1/1     Running   0          45s   192.168.0.6   controlplane   <none>           <none>
+# 
+# 
+# Now Directory /tmp/host_data will exist in host machine, however it is empty
+#
+# ll /tmp/host_data                                                     O/P: It does not contain any file
+#  
+# 
+# Check the container files present at /usr/share/nginx/html directory
+# 
+# kubectl exec test-pod -c c01 -- ls -ltr /usr/share/nginx/html         O/P: It does not contain any file
+# 
+# 
+# kubectl exec test-pod -c c01 -it -- /bin/bash
+# root@test-pod:/# ls -ltr /usr/share/nginx/html                        O/P: It does not contain any file
+# root@test-pod:/# echo "Hello from nginx!" > /usr/share/nginx/html/index.html
+# root@test-pod:/# ls -ltr /usr/share/nginx/html                        O/P: index.html
+# root@test-pod:/# exit
+# 
+# 
+# ls -ltr /tmp/host_data                                                O/P: index.html
+# cat /tmp/host_data/index.html                                         O/P: Hello from nginx!
+# curl 192.168.0.6:80                                                   O/P: Hello from nginx!
+# 
+# 
+# vi /tmp/host_data/index.html                                         --> Edit the file and add text --> I am added from host path file!
+# curl 192.168.0.6:80                                                  O/P: Hello from nginx! I am added from host path file!
+# 
+# 
+# Now delete and create new pod. It should already have /usr/share/nginx/html/index.html file with same content
+#
+# kubectl delete -f 51_volume_hostPath_type_using_nginx.yml
+# kubectl apply -f 51_volume_hostPath_type_using_nginx.yml
+# 
+# kubectl get pods -o wide
+#
+#   NAME       READY   STATUS    RESTARTS   AGE   IP            NODE           NOMINATED NODE   READINESS GATES
+#   test-pod   1/1     Running   0          45s   192.168.0.7   controlplane   <none>           <none>
+# 
+# curl 192.168.0.7:80                                                  O/P: Hello from nginx! I am added from host path file!
+#
+# kubectl exec test-pod -c c01 -- cat /usr/share/nginx/html/index.html O/P: Hello from nginx! I am added from host path file!
