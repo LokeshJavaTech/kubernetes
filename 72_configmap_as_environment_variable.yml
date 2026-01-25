@@ -1,0 +1,88 @@
+apiVersion: v1
+
+kind: Pod
+
+metadata:
+    name: test-pod
+
+    # annotations can have any key and value strings
+    annotations:
+        description: Demo for reading configmap as environment variables inside a Container
+
+spec:
+    containers:
+        - name: c01
+          image: ubuntu
+          command: ["/bin/bash", "-c", "while true; do echo 'I am container c01'; sleep 5; done"]
+          env:
+              - name: c01_env_name
+                valueFrom:
+                    configMapKeyRef:
+                        name: test-configmap                     # this should match with configmap name given in first command
+                        key: 70_test_configuration.conf
+                        
+
+
+# kubectl create configmap test-configmap --from-file=70_test_configuration.conf
+# 
+# kubectl get configmap
+# 
+#     NAME               DATA   AGE
+#     test-configmap     1      11s
+# 
+# kubectl describe configmap test-configmap
+# 
+#     Name:         test-configmap
+#     Namespace:    default
+#     Labels:       <none>
+#     Annotations:  <none>
+#     
+#     Data
+#     ====
+#     70_test_configuration.conf:
+#     ----
+#     key1=value1\r
+#     key2=value2\r
+#     
+#     BinaryData
+#     ====
+#     
+#     Events:  <none>
+# 
+# 
+# 
+# kubectl apply -f 72_configmap_as_environment_variable.yml
+# 
+# kubectl get pods -o wide
+# 
+#     NAME       READY   STATUS    RESTARTS   AGE   IP          NODE             NOMINATED NODE   READINESS GATES
+#     test-pod   1/1     Running   0          7s    10.1.0.97   docker-desktop   <none>           <none>
+# 
+# 
+# kubectl exec test-pod -c c01 -it -- /bin/bash     # Both the commands are same, since there is only 1 container in the pod test-pod
+# kubectl exec test-pod -it -- /bin/bash            # Both the commands are same, since there is only 1 container in the pod test-pod
+# 
+# root@test-pod:/# env
+# 
+#     ....
+#     c01_env_name=key1=value1\nkey2=value2
+#     ....
+# 
+# root@test-pod:/# echo "$c01_env_name"
+# 
+#     key1=value1
+#     key2=value2
+# 
+# root@test-pod:/# echo "$c01_env_name" | grep '^key1=' | cut -d= -f2           --> value1
+# 
+# root@test-pod:/# echo "$c01_env_name" | grep '^key2=' | cut -d= -f2           --> value2
+# 
+# 
+# 
+# # Cleanup after the testing
+# 
+# root@test-pod:/# exit
+# 
+# kubectl delete configmap test-configmap
+# 
+# kubectl delete -f 72_configmap_as_environment_variable.yml
