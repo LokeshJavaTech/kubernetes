@@ -1,0 +1,120 @@
+apiVersion: v1
+
+kind: PersistentVolume
+
+metadata:
+    name: test-pv
+
+    # annotations can have any key and value strings
+    annotations:
+        description: Demo for creating persistent volume
+
+spec:
+    capacity:
+        storage: 50Gi
+
+    accessModes:
+        - ReadWriteOnce
+    
+    persistentVolumeReclaimPolicy: Recycle
+    
+    awsElasticBlockStore:
+        volumeID: vol-4616465465465         # EBS Volume ID from AWS
+        fsType: ext4
+
+
+---
+
+apiVersion: v1
+
+kind: PersistentVolumeClaim
+
+metadata:
+    name: test-pvc
+
+    # annotations can have any key and value strings
+    annotations:
+        description: Demo for creating persistent volume
+
+spec:
+    accessModes:
+        - ReadWriteOnce
+    
+    resources:
+        requests:
+            storage: 35Gi
+    
+
+---
+
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+    name: test-deployment
+
+spec:
+    replicas: 1
+
+    # selector's matchLabel can have any key and any value
+    selector:
+        matchLabels:
+            selectorLabelValue: deployment-rs-pod
+
+    template:
+        metadata:
+            name: testDeploymentRsPod01
+            labels:
+                selectorLabelValue: deployment-rs-pod
+        spec:
+            containers:
+                - name: c01
+                  image: ubuntu
+                  command: ["/bin/bash", "-c", "while true; do echo 'I am container c01'; sleep 5; done"]
+                  volumeMounts:
+                      - name: test_volume
+                        mountPath: "/tmp/container_path"
+            
+            volumes:
+                - name: test_volume
+                  persistentVolumeClaim:
+                      - claimName: test-pvc
+
+
+
+# kubectl apply -f 60_persistent_volume.yml
+# 
+# kubectl get pv
+# 
+# kubectl get pvc
+# 
+# kubectl get deploy -o wide
+# 
+# kubectl get rs -o wide
+# 
+# kubectl get pods -o wide
+# 
+# kubectl exec <pod_name> -it -- /bin/bash                    --> Access container inside the pod using terminal
+# 
+# root@test-pod:/# cd /tmp/container_path
+# 
+# root@test-pod:/# ls                                          --> empty
+# 
+# root@test-pod:/# echo "Hello from container c01" > test.txt
+# 
+# root@test-pod:/# ls                                          --> test.txt
+# 
+# root@test-pod:/# exit
+# 
+# kubectl delete pod <pod_name>                                 --> recreates a new pod
+# 
+# kubectl get pods -o wide                                      --> shows new pod name and IP address
+# 
+# kubectl exec <new_pod_name> -it -- /bin/bash                 --> Access container inside the pod using terminal
+# 
+# root@test-pod:/# cd /tmp/container_path
+# 
+# root@test-pod:/# ls                                          --> test.txt
+# 
+# root@test-pod:/# cat test.txt                                --> Hello from container c01
