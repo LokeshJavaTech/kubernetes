@@ -1,0 +1,66 @@
+apiVersion: v1
+
+kind: Pod
+
+metadata:
+    name: test-pod
+
+    # annotations can have any key and value strings
+    annotations:
+        description: Demo for creating pod inside namespace other than default namespace
+
+spec:
+    containers:
+        - name: c01
+          image: ubuntu
+          command: ["/bin/bash", "-c", "while true; do echo Hello-Lokesh; sleep 5; done"]
+    restartPolicy: Never
+
+
+
+# kubectl get namespace
+# 
+#     NAME                   STATUS   AGE
+#     default                Active   25d
+#     ....                   ....     ..
+# 
+# 
+# kubectl apply -f 90_namespace.yml
+# 
+# kubectl get ns
+# 
+#     NAME                   STATUS   AGE
+#     default                Active   25d
+#     test-namespace         Active   1m5s
+#     ....                   ....     ..
+# 
+# 
+# kubectl apply -f 91_pod_inside_namespace.yml -n test-namespace
+# 
+# kubectl get pods -o wide
+# 
+#     No resources found in default namespace.
+# 
+# 
+# kubectl get pods -n test-namespace -o wide
+# 
+#     NAME       READY   STATUS    RESTARTS   AGE   IP           NODE             NOMINATED NODE   READINESS GATES
+#     test-pod   1/1     Running   0          57s   10.1.0.103   docker-desktop   <none>           <none>
+# 
+#  
+# kubectl get pods --all-namespaces                     --> List all pods with their namespace
+# 
+#     NAMESPACE              NAME                                                   READY   STATUS    RESTARTS       AGE
+#     test-namespace         test-pod                                               1/1     Running   0              7m7s0
+#     ....                   ....                                                   ...     ...       ..             ....
+# 
+# 
+# 
+# 
+# # Cleanup after the testing
+# 
+# kubectl delete pod test-pod                           --> O/P: Error from server (NotFound): pods "test-pod" not found
+# 
+# kubectl delete pod test-pod -n test-namespace         --> O/P: pod "test-pod" deleted
+# 
+# kubectl delete ns test-namespace
