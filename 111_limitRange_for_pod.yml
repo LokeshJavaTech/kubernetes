@@ -1,0 +1,50 @@
+apiVersion: v1
+
+kind: LimitRange
+
+metadata:
+    name: test-limitrange
+    # namespace: test-namespace
+
+    # annotations can have any key and value strings
+    annotations:
+        description: Creating LimitRange
+
+spec:
+    limits:
+        - type: Pod                 # Applies to sum of all containers in the Pod
+
+          min:                      # Pod cannot go below this
+              cpu: "1"
+              memory: 1Gi
+
+          max:                      # Pod cannot exceed this
+              cpu: "5"
+              memory: 5Gi
+
+
+# kubectl apply -f 111_limitRange_for_pod.yml
+# 
+# 
+# kubectl get limitrange
+# 
+#     NAME               CREATED AT
+#     test-limitrange   2026-01-30T00:54:45Z
+# 
+# 
+# kubectl describe limitrange test-limitrange
+# 
+#     Name:                  test-limitrange
+#     Namespace:             default
+# 
+#     Type                   Resource  Min    Max   Default Request  Default Limit  Max Limit/Request Ratio
+#     ----                   --------  ---    ---   ---------------  -------------  -----------------------
+#     Pod                    cpu       1      5     -                -              -
+#     Pod                    memory    1Gi    5Gi   -                -              -
+# 
+# 
+# 
+# 
+# # Cleanup after the testing
+# 
+# kubectl delete limitrange test-limitrange

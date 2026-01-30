@@ -1,0 +1,47 @@
+apiVersion: v1
+
+kind: LimitRange
+
+metadata:
+    name: test-limitrange
+    # namespace: test-namespace
+
+    # annotations can have any key and value strings
+    annotations:
+        description: Creating LimitRange
+
+spec:
+    limits:
+        - type: PersistentVolumeClaim       # Applies at Storage requests
+
+          min:
+              storage: 1Gi
+
+          max:
+              storage: 10Gi
+
+
+# kubectl apply -f 112_limitRange_for_PersistentVolumeClaim.yml
+# 
+# 
+# kubectl get limitrange
+# 
+#     NAME               CREATED AT
+#     test-limitrange   2026-01-30T00:54:45Z
+# 
+# 
+# kubectl describe limitrange test-limitrange
+# 
+#     Name:                  test-limitrange
+#     Namespace:             default
+# 
+#     Type                   Resource  Min    Max   Default Request  Default Limit  Max Limit/Request Ratio
+#     ----                   --------  ---    ---   ---------------  -------------  -----------------------
+#     PersistentVolumeClaim  storage   1Gi    10Gi  -                -              -
+# 
+# 
+# 
+# 
+# # Cleanup after the testing
+# 
+# kubectl delete limitrange test-limitrange

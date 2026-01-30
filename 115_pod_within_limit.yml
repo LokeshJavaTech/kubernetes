@@ -1,0 +1,75 @@
+apiVersion: v1
+
+kind: Pod
+
+metadata:
+    name: test-pod
+
+    # annotations can have any key and value strings
+    annotations:
+        description: Demo for LimitRange
+
+spec:
+    containers:
+        - name: c01
+          image: ubuntu
+          command: ["/bin/bash", "-c", "while true; do echo 'I am container c01'; sleep 5; done"]
+
+          resources:
+              limits:
+                  cpu: "400m"
+              requests:
+                  cpu: "200m"
+
+
+
+# kubectl apply -f 115_pod_within_limit.yml
+# 
+# 
+# kubectl get limitrange
+# 
+#     NAME               CREATED AT
+#     test-limitrange   2026-01-30T00:54:45Z
+# 
+# 
+# kubectl describe limitrange test-limitrange
+# 
+#     Name:                  test-limitrange
+#     Namespace:             default
+# 
+#     Type                   Resource  Min    Max   Default Request  Default Limit  Max Limit/Request Ratio
+#     ----                   --------  ---    ---   ---------------  -------------  -----------------------
+#     Container              cpu       100m   1     500m             500m           -
+#     Container              memory    500Mi  1Gi   500Mi            500Mi          -
+# 
+# 
+# 
+# kubectl apply -f 111_pod_within_limit.yml
+# 
+# kubectl get pods -o wide
+# 
+#     NAME       READY   STATUS    RESTARTS   AGE   IP           NODE             NOMINATED NODE   READINESS GATES
+#     test-pod   1/1     Running   0          79s   10.1.0.119   docker-desktop   <none>           <none>
+# 
+# 
+#  kubectl describe pod test-pod
+# 
+#     Containers:
+#       c01:
+#         Container ID:  docker://7b8ed281a1bfaa38dc0d6a9d35297c77ad56841f8ea25abd4cfbace3f9c1cb32
+#         ....
+#         Limits:
+#           cpu:     400m
+#           memory:  500Mi
+#         Requests:
+#           cpu:     200m
+#           memory:  500Mi
+#         ....
+# 
+# 
+# 
+# # Cleanup after the testing
+# 
+# kubectl delete limitrange test-limitrange
+# 
+# kubectl delete pod test-pod
