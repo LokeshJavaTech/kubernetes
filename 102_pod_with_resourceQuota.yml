@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+    name: test-deployment
+
+spec:
+    replicas: 3
+
+    # selector's matchLabel can have any key and any value
+    selector:
+        matchLabels:
+            selectorLabelValue: deployment-rs-pod
+
+    template:
+        metadata:
+            name: testDeploymentRsPod01
+            labels:
+                selectorLabelValue: deployment-rs-pod
+        spec:
+            containers:
+                - name: c01
+                  image: ubuntu
+                  command: ["/bin/bash", "-c", "while true; do echo 'I am container c01'; sleep 5; done"]
+                  resources:
+                      requests:
+                          cpu: "200m"
+                          memory: "150Mi"
+                      limits:
+                          cpu: "200m"
+                          memory: "150Mi"
+
+
+
+# kubectl get namespace
+# 
+#     NAME                   STATUS   AGE
+#     default                Active   25d
+#     ....                   ....     ..
+# 
+# 
+# kubectl apply -f 90_namespace.yml
+# 
+# kubectl get ns
+# 
+#     NAME                   STATUS   AGE
+#     default                Active   25d
+#     test-namespace         Active   1m5s
+#     ....                   ....     ..
+# 
+# 
+# kubectl apply -f 101_resourceQuota.yml -n test-namespace
+# 
+# kubectl get resourceQuota                                     --> O/P: No resources found in default namespace.
+# 
+# kubectl get resourceQuota -n test-namespace
+# 
+#     NAME                  AGE   REQUEST                                                      LIMIT
+#     test-resource-quota   16s   pods: 0/20, requests.cpu: 0/200m, requests.memory: 0/200Mi   limits.cpu: 0/400m, limits.memory: 0/400Mi
+# 
+# 
+# 
+# # Creating POD in default namespace. Default namespace doesn't have any ResourceQuota, therefore, all the 3 pods will be created successfully
+# 
+# kubectl apply -f 102_pod_with_resourceQuota.yml
+# 
+# kubectl get deploy -o wide
+# 
+#     NAME              READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES   SELECTOR
+#     test-deployment   3/3     3            3           33s   c01          ubuntu   selectorLabelValue=deployment-rs-pod
+# 
+# 
+# 
+# # Creating POD in test-namespace. This namespace has ResourceQuota limit of 400m CPU, whereas each POD require 200m.
+# # Therefore, the deployment will fail and no pod will start
+# 
+# kubectl apply -f 102_pod_with_resourceQuota.yml -n test-namespace
+# 
+# kubectl get deploy -o wide -n test-namespace
+# 
+#     NAME              READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES   SELECTOR
+#     test-deployment   0/3     0            0           16s   c01          ubuntu   selectorLabelValue=deployment-rs-pod
+# 
+# kubectl get rs -n test-namespace
+# 
+#     NAME                         DESIRED   CURRENT   READY   AGE
+#     test-deployment-6759d455d5   3         0         0       97s
+# 
+# kubectl get pods -o wide -n test-namespace
+# 
+#     No resources found in test-namespace namespace
+# 
+# 
+# 
+# # Now decrease the replicas value to 1, and try again
+# 
+# kubectl delete deploy test-deployment -n test-namespace
+# 
+# kubectl apply -f 102_pod_with_resourceQuota.yml -n test-namespace
+# 
+# kubectl get deploy -o wide -n test-namespace
+# 
+#     NAME              READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES   SELECTOR
+#     test-deployment   1/1     1            1           5s    c01          ubuntu   selectorLabelValue=deployment-rs-pod
+# 
+# kubectl get rs -n test-namespace
+# 
+#     NAME                         DESIRED   CURRENT   READY   AGE
+#     test-deployment-fb585d64d   1         1         1       18s
+# 
+# kubectl get pods -o wide -n test-namespace
+# 
+#     NAME                              READY   STATUS    RESTARTS   AGE   IP           NODE             NOMINATED NODE   READINESS GATES
+#     test-deployment-fb585d64d-2644j   1/1     Running   0          30s   10.1.0.117   docker-desktop   <none>           <none>
+# 
+# kubectl get resourceQuota -n test-namespace
+# 
+#     NAME                  AGE   REQUEST                                                             LIMIT
+#     test-resource-quota   13m   pods: 1/20, requests.cpu: 200m/200m, requests.memory: 150Mi/200Mi   limits.cpu: 200m/400m, limits.memory: 150Mi/400Mi
+# 
+# 
+# 
+# 
+# # Cleanup after the testing
+# 
+# kubectl delete deploy test-deployment -n test-namespace
+# 
+# kubectl delete resourceQuota test-resource-quota -n test-namespace
+#
+# kubectl delete ns test-namespace
